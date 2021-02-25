@@ -1,0 +1,7 @@
+lcdDriverInterface.c:16:6:lcd_Init	8	static
+lcdDriverInterface.c:24:6:printToLcdDrv1Receive	24	static
+lcdDriverInterface.c:32:6:printToLcdDrv1Transmit	24	static
+lcdDriverInterface.c:40:6:printToLcdDrv2Receive	24	static
+lcdDriverInterface.c:48:6:printToLcdDrv2Transmit	24	static
+lcdDriverInterface.c:56:6:cleanTheLcd	8	static
+lcdDriverInterface.c:59:6:lcdController	24	static
