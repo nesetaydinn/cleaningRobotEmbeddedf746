@@ -30,4 +30,5 @@ analogValuesController \
 buttonController \
 lcdDriver \
 motorDriverInterface \
+taskManagerInterface \
 

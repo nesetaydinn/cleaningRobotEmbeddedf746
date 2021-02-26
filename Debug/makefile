@@ -8,6 +8,7 @@ RM := rm -rf
 
 # All of the sources participating in the build are defined here
 -include sources.mk
+-include taskManagerInterface/subdir.mk
 -include motorDriverInterface/subdir.mk
 -include lcdDriver/subdir.mk
 -include buttonController/subdir.mk

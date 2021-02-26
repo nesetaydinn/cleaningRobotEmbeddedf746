@@ -170,7 +170,7 @@ void MDI_getDataChannel1(void){
  */
 void MDI_getDataChannel1Ver2(void){
 
-		HAL_UART_Receive(&MDI_channel1,(uint8_t*)rec1Buff,10,TIMEOUTVAL*10);
+	HAL_UART_Receive_IT(&MDI_channel1,(uint8_t*)rec1Buff,TIMEOUTVAL*10);
 		if(0xFF==rec1Buff[0] && 0xFF==rec1Buff[1]){
 			uint16_t checksumTmp=0;
 			for(uint8_t c=2;c<8;c++)checksumTmp+=rec1Buff[c];
@@ -248,7 +248,7 @@ void MDI_getDataChannel2(void){
  */
 void MDI_getDataChannel2Ver2(void){
 
-	HAL_UART_Receive(&MDI_channel2,(uint8_t*)rec2Buff,10,TIMEOUTVAL*10);
+	HAL_UART_Receive_IT(&MDI_channel2,(uint8_t*)rec2Buff,TIMEOUTVAL*10);
 	if(0xFF==rec2Buff[0] && 0xFF==rec2Buff[1]){
 		uint16_t checksumTmp=0;
 		for(uint8_t c=2;c<8;c++)checksumTmp+=rec2Buff[c];

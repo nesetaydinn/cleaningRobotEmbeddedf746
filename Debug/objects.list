@@ -42,3 +42,4 @@
 "lcdDriver/lcdDriverInterface.o"
 "lcdDriver/lcd_i2cModule.o"
 "motorDriverInterface/motorDriverInterface.o"
+"taskManagerInterface/taskManagerInterface.o"

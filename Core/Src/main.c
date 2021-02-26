@@ -19,19 +19,14 @@
 /* USER CODE END Header */
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
-#include "cmsis_os.h"
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-#include "motorDriverInterface.h"
-#include "analogValuesController.h"
-#include "buttonController.h"
-#include "lcdDriverInterface.h"
+#include "taskManagerInterface.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
 /* USER CODE BEGIN PTD */
-uint8_t task1Cntr=0,task2Cntr=0;
 /* USER CODE END PTD */
 
 /* Private define ------------------------------------------------------------*/
@@ -54,59 +49,6 @@ TIM_HandleTypeDef htim2;
 UART_HandleTypeDef huart7;
 UART_HandleTypeDef huart6;
 
-/* Definitions for sendUart1 */
-osThreadId_t sendUart1Handle;
-const osThreadAttr_t sendUart1_attributes = {
-  .name = "sendUart1",
-  .priority = (osPriority_t) osPriorityRealtime7,
-  .stack_size = 512 * 4
-};
-/* Definitions for sendUart2 */
-osThreadId_t sendUart2Handle;
-const osThreadAttr_t sendUart2_attributes = {
-  .name = "sendUart2",
-  .priority = (osPriority_t) osPriorityRealtime6,
-  .stack_size = 512 * 4
-};
-/* Definitions for getUart1 */
-osThreadId_t getUart1Handle;
-const osThreadAttr_t getUart1_attributes = {
-  .name = "getUart1",
-  .priority = (osPriority_t) osPriorityRealtime5,
-  .stack_size = 512 * 4
-};
-/* Definitions for getUart2 */
-osThreadId_t getUart2Handle;
-const osThreadAttr_t getUart2_attributes = {
-  .name = "getUart2",
-  .priority = (osPriority_t) osPriorityRealtime4,
-  .stack_size = 512 * 4
-};
-/* Definitions for readADCval */
-osThreadId_t readADCvalHandle;
-const osThreadAttr_t readADCval_attributes = {
-  .name = "readADCval",
-  .priority = (osPriority_t) osPriorityHigh3,
-  .stack_size = 512 * 4
-};
-/* Definitions for btnControls */
-osThreadId_t btnControlsHandle;
-const osThreadAttr_t btnControls_attributes = {
-  .name = "btnControls",
-  .priority = (osPriority_t) osPriorityHigh2,
-  .stack_size = 512 * 4
-};
-/* Definitions for lcdController */
-osThreadId_t lcdControllerHandle;
-const osThreadAttr_t lcdController_attributes = {
-  .name = "lcdController",
-  .priority = (osPriority_t) osPriorityHigh1,
-  .stack_size = 512 * 4
-};
-/* USER CODE BEGIN PV */
-
-/* USER CODE END PV */
-
 /* Private function prototypes -----------------------------------------------*/
 void SystemClock_Config(void);
 static void MX_GPIO_Init(void);
@@ -116,13 +58,6 @@ static void MX_ADC3_Init(void);
 static void MX_UART7_Init(void);
 static void MX_USART6_UART_Init(void);
 static void MX_I2C1_Init(void);
-void sendUart1Task(void *argument);
-void sendUart2Task(void *argument);
-void getUart1Task(void *argument);
-void getUart2Task(void *argument);
-void readADCvalTask(void *argument);
-void btnControlsTask(void *argument);
-void lcdControllerTask(void *argument);
 
 /* USER CODE BEGIN PFP */
 
@@ -167,65 +102,7 @@ int main(void)
   MX_UART7_Init();
   MX_USART6_UART_Init();
   MX_I2C1_Init();
-  /* USER CODE BEGIN 2 */
-
-  /* USER CODE END 2 */
-
-  /* Init scheduler */
-  osKernelInitialize();
-
-  /* USER CODE BEGIN RTOS_MUTEX */
-  /* add mutexes, ... */
-  /* USER CODE END RTOS_MUTEX */
-
-  /* USER CODE BEGIN RTOS_SEMAPHORES */
-  /* add semaphores, ... */
-  /* USER CODE END RTOS_SEMAPHORES */
-
-  /* USER CODE BEGIN RTOS_TIMERS */
-  /* start timers, add new ones, ... */
-  /* USER CODE END RTOS_TIMERS */
-
-  /* USER CODE BEGIN RTOS_QUEUES */
-  /* add queues, ... */
-  /* USER CODE END RTOS_QUEUES */
-
-  /* Create the thread(s) */
-  /* creation of sendUart1 */
-  sendUart1Handle = osThreadNew(sendUart1Task, NULL, &sendUart1_attributes);
-
-  /* creation of sendUart2 */
-  sendUart2Handle = osThreadNew(sendUart2Task, NULL, &sendUart2_attributes);
-
-  /* creation of getUart1 */
-  getUart1Handle = osThreadNew(getUart1Task, NULL, &getUart1_attributes);
-
-  /* creation of getUart2 */
-  getUart2Handle = osThreadNew(getUart2Task, NULL, &getUart2_attributes);
-
-  /* creation of readADCval */
-  readADCvalHandle = osThreadNew(readADCvalTask, NULL, &readADCval_attributes);
-
-  /* creation of btnControls */
-  btnControlsHandle = osThreadNew(btnControlsTask, NULL, &btnControls_attributes);
-
-  /* creation of lcdController */
-  lcdControllerHandle = osThreadNew(lcdControllerTask, NULL, &lcdController_attributes);
-
-  /* USER CODE BEGIN RTOS_THREADS */
-  /* add threads, ... */
-  /* USER CODE END RTOS_THREADS */
-
-  /* USER CODE BEGIN RTOS_EVENTS */
-  /* add events, ... */
-  /* USER CODE END RTOS_EVENTS */
-
-  /* Start scheduler */
-  osKernelStart();
-
-  /* We should never get here as control is now taken by the scheduler */
-  /* Infinite loop */
-  /* USER CODE BEGIN WHILE */
+  tasks_init();
   while (1)
   {
     /* USER CODE END WHILE */
@@ -584,156 +461,6 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Pull = GPIO_PULLUP;
   HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
 
-}
-
-/* USER CODE BEGIN 4 */
-
-/* USER CODE END 4 */
-
-/* USER CODE BEGIN Header_sendUart1Task */
-/**
-  * @brief  Function implementing the sendUart1 thread.
-  * @param  argument: Not used
-  * @retval None
-  */
-/* USER CODE END Header_sendUart1Task */
-void sendUart1Task(void *argument)
-{
-  /* USER CODE BEGIN 5 */
-  /* Infinite loop */
-  for(;;)
-  {
-		  MDI_getDataChannel1();
-		  osDelay(5);
-  }
-  /* USER CODE END 5 */
-}
-
-/* USER CODE BEGIN Header_sendUart2Task */
-/**
-* @brief Function implementing the sendUart2 thread.
-* @param argument: Not used
-* @retval None
-*/
-/* USER CODE END Header_sendUart2Task */
-void sendUart2Task(void *argument)
-{
-  /* USER CODE BEGIN sendUart2Task */
-  /* Infinite loop */
-  for(;;)
-  {
-		  MDI_getDataChannel2();
-		  osDelay(5);
-  }
-  /* USER CODE END sendUart2Task */
-}
-
-/* USER CODE BEGIN Header_getUart1Task */
-/**
-* @brief Function implementing the getUart1 thread.
-* @param argument: Not used
-* @retval None
-*/
-/* USER CODE END Header_getUart1Task */
-void getUart1Task(void *argument)
-{
-  /* USER CODE BEGIN getUart1Task */
-
-  /* Infinite loop */
-  for(;;)
-  {
-		transmissionDriver1();
-		osDelay(5);
-
-  }
-  /* USER CODE END getUart1Task */
-}
-
-/* USER CODE BEGIN Header_getUart2Task */
-/**
-* @brief Function implementing the getUart2 thread.
-* @param argument: Not used
-* @retval None
-*/
-/* USER CODE END Header_getUart2Task */
-void getUart2Task(void *argument)
-{
-  /* USER CODE BEGIN getUart2Task */
-
-  /* Infinite loop */
-  for(;;)
-  {
-	  transmissionDriver2();
-	  osDelay(5);
-
-  }
-  /* USER CODE END getUart2Task */
-}
-
-/* USER CODE BEGIN Header_readADCvalTask */
-/**
-* @brief Function implementing the readADCval thread.
-* @param argument: Not used
-* @retval None
-*/
-/* USER CODE END Header_readADCvalTask */
-void readADCvalTask(void *argument)
-{
-  /* USER CODE BEGIN readADCvalTask */
-	uint16_t val1,val2;
-  /* Infinite loop */
-  for(;;)
-  {
-		readAnalog2Values(&hadc1,&hadc3);
-		val1=valuesMap(getAnalogValue1(),0,4095,0,1000);
-		setDriver1AngleValue(val1);
-		osDelay(5);
-		val2=valuesMap(getAnalogValue2(),0,4095,0,1000);
-		setDriver2AngleValue(val2);
-		osDelay(5);
-  }
-  /* USER CODE END readADCvalTask */
-}
-
-/* USER CODE BEGIN Header_btnControlsTask */
-/**
-* @brief Function implementing the btnControls thread.
-* @param argument: Not used
-* @retval None
-*/
-/* USER CODE END Header_btnControlsTask */
-void btnControlsTask(void *argument)
-{
-  /* USER CODE BEGIN btnControlsTask */
-	btnParameterInit();
-  /* Infinite loop */
-  for(;;)
-  {		  	buttonController();
-    osDelay(50);
-  }
-  /* USER CODE END btnControlsTask */
-}
-
-/* USER CODE BEGIN Header_lcdControllerTask */
-/**
-* @brief Function implementing the lcdController thread.
-* @param argument: Not used
-* @retval None
-*/
-/* USER CODE END Header_lcdControllerTask */
-void lcdControllerTask(void *argument)
-{
-  /* USER CODE BEGIN lcdControllerTask */
-	lcd_Init();
-  /* Infinite loop */
-  for(;;)
-  {
-	  	lcdController();
-	  		    osDelay(500);
-	  			 cleanTheLcd();
-	  			 osDelay(10);
-}
-  /* USER CODE END lcdControllerTask */
 }
 
  /**
