@@ -103,6 +103,8 @@ int main(void)
   MX_USART6_UART_Init();
   MX_I2C1_Init();
   tasks_init();
+  HAL_NVIC_DisableIRQ(UART7_IRQn);
+  HAL_NVIC_DisableIRQ(USART6_IRQn);
   while (1)
   {
     /* USER CODE END WHILE */

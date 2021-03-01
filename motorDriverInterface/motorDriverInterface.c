@@ -260,40 +260,43 @@ void MDI_getDataChannel1Ver2(void) {
  * @brief get to Motor Driver 1 values
  * @return none
  */
+static uint8_t tmpArr1[10];
 void MDI_getDataChannel1Ver3(void) {
-	static uint8_t tmpArr[10];
-	static uint8_t counter=0,getTmp=0,getTmpBeff=0;
-	if((MDI_channel1.Instance->ISR & USART_ISR_RXNE) != 0){
-		getTmp = MDI_channel1.Instance->RDR;
-		if(0xFF ==getTmp && 0xFF ==getTmpBeff){
-			tmpArr[0]=0xFF;
-			tmpArr[1]=0xFF;
-			counter=1;
+	volatile UART_HandleTypeDef *tmpHandle;
+	tmpHandle = &MDI_channel1;
+	static uint8_t counter = 0, getTmp = 0, getTmpBeff = 0;
+	if ((tmpHandle->Instance->ISR & USART_ISR_RXNE) != 0) {
+		getTmp = tmpHandle->Instance->RDR;
+		if (0xFF == getTmp && 0xFF == getTmpBeff) {
+			tmpArr1[0] = 0xFF;
+			tmpArr1[1] = 0xFF;
+			counter = 1;
 		}
-		tmpArr[counter]=getTmp;
-		getTmpBeff=getTmp;
+		tmpArr1[counter] = getTmp;
+		getTmpBeff = getTmp;
 		counter++;
-		if(counter>9){
-			counter=0;
-			 uint16_t checksumTmp = 0;
-			for (uint8_t c = 2; c < 8; c++)checksumTmp += tmpArr[c];
+		if (counter > 9) {
+			counter = 0;
+			uint16_t checksumTmp = 0;
+			for (uint8_t c = 2; c < 8; c++)
+				checksumTmp += tmpArr1[c];
 			uint8_t tmp = checksumTmp % 256;
 			uint8_t tmpComp = ~tmp;
-			if (tmp == tmpArr[8] && tmpComp == tmpArr[9]) {
-			driver1.angle = ((uint16_t) tmpArr[2] << 8) | tmpArr[3];
-			driver1.pid_kp = tmpArr[4];
-			driver1.pid_ki = tmpArr[5];
-			driver1.pid_kd = tmpArr[6];
-			driver1.factor = tmpArr[7];
+			if (tmp == tmpArr1[8] && tmpComp == tmpArr1[9]) {
+				driver1.angle = ((uint16_t) tmpArr1[2] << 8) | tmpArr1[3];
+				driver1.pid_kp = tmpArr1[4];
+				driver1.pid_ki = tmpArr1[5];
+				driver1.pid_kd = tmpArr1[6];
+				driver1.factor = tmpArr1[7];
+			}
 		}
-		}
+		__HAL_UART_CLEAR_FLAG(tmpHandle, UART_CLEAR_RTOF); //been UART receiver timeout clear flag
+		tmpHandle->RxState = HAL_UART_STATE_READY; //been set receive state ready
+		tmpHandle->ErrorCode = HAL_UART_ERROR_NONE; //if was being error than be clean the error
+		SET_BIT(tmpHandle->Instance->RDR, 0); //if rxstate not catch for cleanig then be cleaning RDR register
 	}
-	__disable_irq();
-	MDI_channel1.Instance->RDR=0;
-	MDI_channel1.RxState=HAL_UART_STATE_READY;
-	 __HAL_UART_CLEAR_FLAG(&MDI_channel1, UART_CLEAR_RTOF);
-	 __enable_irq();
-
+	if ((tmpHandle->Instance->ISR & USART_ISR_ORE) != 0)
+		tmpHandle->Instance->ICR |= USART_ICR_ORECF; //if occur a Overrun error then cleaning ORE(Overrun) bit
 }
 /**
  * @brief get to Motor Driver 1 values
@@ -436,49 +439,52 @@ void MDI_getDataChannel2Ver2(void) {
  * @brief get to Motor Driver 2 values
  * @return none
  */
+static uint8_t tmpArr2[10];
 void MDI_getDataChannel2Ver3(void) {
-	static uint8_t tmpArr[10];
-	static uint8_t counter=0,getTmp=0,getTmpBeff=0;
-	if((MDI_channel2.Instance->ISR & USART_ISR_RXNE) != 0){
-		getTmp = MDI_channel2.Instance->RDR;
-		if(0xFF ==getTmp && 0xFF ==getTmpBeff){
-			tmpArr[0]=0xFF;
-			tmpArr[1]=0xFF;
-			counter=1;
+	volatile UART_HandleTypeDef *tmpHandle;
+	tmpHandle = &MDI_channel2;
+	static uint8_t counter = 0, getTmp = 0, getTmpBeff = 0;
+	if ((tmpHandle->Instance->ISR & USART_ISR_RXNE) != 0) {
+		getTmp = tmpHandle->Instance->RDR;
+		if (0xFF == getTmp && 0xFF == getTmpBeff) {
+			tmpArr2[0] = 0xFF;
+			tmpArr2[1] = 0xFF;
+			counter = 1;
 		}
-		tmpArr[counter]=getTmp;
-		getTmpBeff=getTmp;
+		tmpArr2[counter] = getTmp;
+		getTmpBeff = getTmp;
 		counter++;
-		if(counter>9){
-			counter=0;
-			 uint16_t checksumTmp = 0;
-			for (uint8_t c = 2; c < 8; c++)checksumTmp += tmpArr[c];
+		if (counter > 9) {
+			counter = 0;
+			uint16_t checksumTmp = 0;
+			for (uint8_t c = 2; c < 8; c++)
+				checksumTmp += tmpArr2[c];
 			uint8_t tmp = checksumTmp % 256;
 			uint8_t tmpComp = ~tmp;
-			if (tmp == tmpArr[8] && tmpComp == tmpArr[9]) {
-			driver2.angle = ((uint16_t) tmpArr[2] << 8) | tmpArr[3];
-			driver2.pid_kp = tmpArr[4];
-			driver2.pid_ki = tmpArr[5];
-			driver2.pid_kd = tmpArr[6];
-			driver2.factor = tmpArr[7];
-		}
+			if (tmp == tmpArr2[8] && tmpComp == tmpArr2[9]) {
+				driver2.angle = ((uint16_t) tmpArr2[2] << 8) | tmpArr2[3];
+				driver2.pid_kp = tmpArr2[4];
+				driver2.pid_ki = tmpArr2[5];
+				driver2.pid_kd = tmpArr2[6];
+				driver2.factor = tmpArr2[7];
+			}
 		}
 
-
+		__HAL_UART_CLEAR_FLAG(tmpHandle, UART_CLEAR_RTOF); //been UART receiver timeout clear flag
+		tmpHandle->RxState = HAL_UART_STATE_READY; //been set receive state ready
+		tmpHandle->ErrorCode = HAL_UART_ERROR_NONE; //if was being error than be clean the error
+		SET_BIT(tmpHandle->Instance->RDR, 0); //if rxstate not catch for cleanig then be cleaning RDR register
 	}
-	__disable_irq();
-	MDI_channel2.Instance->RDR=0;
-	MDI_channel2.RxState=HAL_UART_STATE_READY;
-	 __HAL_UART_CLEAR_FLAG(&MDI_channel2, UART_CLEAR_RTOF);
-	 __enable_irq();
+	if ((tmpHandle->Instance->ISR & USART_ISR_ORE) != 0)
+		tmpHandle->Instance->ICR |= USART_ICR_ORECF; //if occur a Overrun error then cleaning ORE(Overrun) bit
 }
 /**
  * @brief get to Motor Driver 2 values
  * @return none
  */
-void MDI_getDataChannel2Ver4(void){
-		HAL_UART_Receive(&MDI_channel2, (uint8_t*) &rec2Buff, 20, TIMEOUTVAL*150);
-		for (uint8_t counter = 0; counter < sizeof(rec2Buff); counter++) {
+void MDI_getDataChannel2Ver4(void) {
+	HAL_UART_Receive(&MDI_channel2, (uint8_t*) &rec2Buff, 20, TIMEOUTVAL * 150);
+	for (uint8_t counter = 0; counter < sizeof(rec2Buff); counter++) {
 		if (rec2Buff[counter] == 0xFF && rec2Buff[counter + 1] == 0xFF) {
 			uint16_t checksumTmp = 0;
 			uint8_t tmpArr[10];
